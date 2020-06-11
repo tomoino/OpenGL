@@ -45,17 +45,34 @@ void Cylinder(double height, double radius) {
   glEnd();
 }
 
+void Capsule (double height, double radius) {
+  int division = 100; // 分割数。多いほど曲面に近くなる。
+  glPushMatrix(); // 座標系の保存
+  glTranslatef(0, height, 0); // 座標変換
+  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+ 	glPopMatrix(); // 座標系の保存
+  Cylinder(height, radius);
+  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+}
+
+void Body (double height, double radius) {
+  int division = 100; // 分割数。多いほど曲面に近くなる。
+  glPushMatrix(); // 座標系の保存
+  glTranslatef(0, height, 0); // 座標変換
+  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+ 	glPopMatrix(); // 座標系の保存
+  Cylinder(height, radius);
+}
 // 描画処理を行う
 void display (void) {
 	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
 	glPushMatrix(); // 座標系の保存
-	
 	glTranslatef(0, 0, 10); // 座標変換
-	Cylinder(1.0,0.7);
-	// Cylinder(0.8,0.1);
-
+	Body(2.8,2.0);
 	glPopMatrix(); // 座標系の復元
+
 	glutSwapBuffers();
 }
 
