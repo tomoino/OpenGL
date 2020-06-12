@@ -4,13 +4,15 @@
 #include <math.h>
 #include <string.h>
 
+GLfloat GREEN[] = {0.6, 0.9, 0.4, 1.0};		//緑色
+GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//緑色
+
 // TODO: glVertex3dv
 void Cylinder(double height, double radius) {
   int division = 100; // 分割数。多いほど曲面に近くなる。
   double step = 2.0 * M_PI / (double)division; // 側面1辺あたりの中心角
   int i;
   double theta = 0;
-
   /* 上面  */
   glNormal3d(0.0, 1.0, 0.0);
   glBegin(GL_POLYGON);
@@ -57,11 +59,44 @@ void Capsule (double height, double radius) {
 
 void Body (double height, double radius) {
   int division = 100; // 分割数。多いほど曲面に近くなる。
+  // 頭部
   glPushMatrix(); // 座標系の保存
   glTranslatef(0, height, 0); // 座標変換
   glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  glPushMatrix();
+  glTranslatef(0, -height/10, 0); // 座標変換
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, WHITE);
+  Cylinder(height*0.1, radius); // 頭と体の区切り
+  glPopMatrix();
+  // 右目
+  glPushMatrix();
+  glTranslatef(-radius*0.4, radius*0.5, radius*0.7); // 座標変換
+  glutSolidSphere(radius*0.1, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  glPopMatrix();
+  // 左目
+  glPushMatrix();
+  glTranslatef(radius*0.4, radius*0.5, radius*0.7); // 座標変換
+  glutSolidSphere(radius*0.1, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  glPopMatrix();
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
+  // 右触覚
+  glPushMatrix();
+  glRotatef(30,0,0,1);
+  glTranslatef(0, radius, 0); // 座標変換
+  Capsule(radius*0.4, radius*0.05);
+  glPopMatrix();
+  // 左触覚
+  glPushMatrix();
+  glRotatef(-30,0,0,1);
+  glTranslatef(0, radius, 0); // 座標変換
+  Capsule(radius*0.4, radius*0.05);
+  glPopMatrix();
  	glPopMatrix(); // 座標系の保存
-  Cylinder(height, radius);
+
+
+  
+  // 体
+  Cylinder(height*0.9, radius);
 }
 // 描画処理を行う
 void display (void) {
@@ -70,9 +105,10 @@ void display (void) {
   
 	glPushMatrix(); // 座標系の保存
 
-	glTranslatef(0, 0, 10); // 座標変換
-	Body(3.0,2.0);
 
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
+	glTranslatef(0, -4, -10); // 座標変換
+	Body(3.0,2.0);
   // 右腕
   glPushMatrix(); // 座標系の保存
 	glTranslatef(2.8, 1, 0); // 座標変換
@@ -117,11 +153,11 @@ void init (void) {
 	gluPerspective(45.0, 1, 1.0, 100.0); // カメラの視野を設定
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0, 0.0, -3.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0); // カメラの向き
+	gluLookAt(0.0, 1.0, 3.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0); // カメラの向き
 }
 
 int main (int argc, char *argv[]) {
-    glutInitWindowSize(600, 600); // ウィンドウのサイズ指定
+  glutInitWindowSize(600, 600); // ウィンドウのサイズ指定
 	glutInit(&argc, argv); // GLUTおよび OpenGL環境を初期化　
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH); // ディスプレイの表示モードの設定
 	glutCreateWindow("1Y18F014 井上智裕 Report"); // ウィンドウを開く
