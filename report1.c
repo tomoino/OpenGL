@@ -69,8 +69,19 @@ void display (void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
 	glPushMatrix(); // 座標系の保存
+
 	glTranslatef(0, 0, 10); // 座標変換
 	Body(2.8,2.0);
+
+  glPushMatrix(); // 座標系の保存
+	glTranslatef(2.8, 1, 0); // 座標変換
+	Capsule(1.4,0.5);
+	glPopMatrix(); // 座標系の復元
+  glPushMatrix(); // 座標系の保存
+	glTranslatef(-2.8, 1, 0); // 座標変換
+	Capsule(1.4,0.5);
+	glPopMatrix(); // 座標系の復元
+  
 	glPopMatrix(); // 座標系の復元
 
 	glutSwapBuffers();
