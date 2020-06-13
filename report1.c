@@ -4,12 +4,15 @@
 #include <math.h>
 #include <string.h>
 
+#define DIVISION 100
+
 GLfloat GREEN[] = {0.6, 0.9, 0.4, 1.0};		//緑色
 GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//緑色
-
 // TODO: glVertex3dv
-void Cylinder(double height, double radius) {
+void Cylinder(double height, double radius, double x, double y, double z) {
   int division = 100; // 分割数。多いほど曲面に近くなる。
+  glPushMatrix(); // 座標系の保存
+  glTranslatef(x, y, z); // 座標変換
   double step = 2.0 * M_PI / (double)division; // 側面1辺あたりの中心角
   int i;
   double theta = 0;
@@ -45,16 +48,25 @@ void Cylinder(double height, double radius) {
     theta += step;
   }
   glEnd();
+  glPopMatrix();
 }
 
-void Capsule (double height, double radius) {
+void Sphere (double radius, double x, double y, double z) {
   int division = 100; // 分割数。多いほど曲面に近くなる。
   glPushMatrix(); // 座標系の保存
-  glTranslatef(0, height, 0); // 座標変換
+  glTranslatef(x, y, z); // 座標変換
   glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  glPopMatrix(); // 座標系の保存
+}
+
+void Capsule (double height, double radius, double x, double y, double z) {
+  int division = 100; // 分割数。多いほど曲面に近くなる。
+  glPushMatrix(); // 座標系の保存
+  glTranslatef(x, y, z); // 座標変換
+  Sphere(radius, 0, height, 0);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  Cylinder(height, radius, 0, 0, 0);
+  Sphere(radius, 0, 0, 0);//半径, Z軸まわりの分割数, Z軸に沿った分割数
  	glPopMatrix(); // 座標系の保存
-  Cylinder(height, radius);
-  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
 }
 
 void Body (double height, double radius) {
@@ -62,74 +74,48 @@ void Body (double height, double radius) {
   // 頭部
   glPushMatrix(); // 座標系の保存
   glTranslatef(0, height, 0); // 座標変換
-  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
-  glPushMatrix();
-  glTranslatef(0, -height/10, 0); // 座標変換
+
+  Sphere(radius, 0, 0, 0);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, WHITE);
-  Cylinder(height*0.1, radius); // 頭と体の区切り
-  glPopMatrix();
+  // 頭と体の区切り
+  Cylinder(height*0.1, radius, 0, -height/10, 0); 
   // 右目
-  glPushMatrix();
-  glTranslatef(-radius*0.4, radius*0.5, radius*0.7); // 座標変換
-  glutSolidSphere(radius*0.1, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
-  glPopMatrix();
+  Sphere(radius*0.1, -radius*0.4, radius*0.5, radius*0.7);//半径, Z軸まわりの分割数, Z軸に沿った分割数
   // 左目
-  glPushMatrix();
-  glTranslatef(radius*0.4, radius*0.5, radius*0.7); // 座標変換
-  glutSolidSphere(radius*0.1, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
-  glPopMatrix();
+  Sphere(radius*0.1, radius*0.4, radius*0.5, radius*0.7);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
   // 右触覚
   glPushMatrix();
   glRotatef(30,0,0,1);
-  glTranslatef(0, radius, 0); // 座標変換
-  Capsule(radius*0.4, radius*0.05);
+  Capsule(radius*0.4, radius*0.05, 0, radius, 0);
   glPopMatrix();
   // 左触覚
   glPushMatrix();
   glRotatef(-30,0,0,1);
-  glTranslatef(0, radius, 0); // 座標変換
-  Capsule(radius*0.4, radius*0.05);
+  Capsule(radius*0.4, radius*0.05, 0, radius, 0);
   glPopMatrix();
  	glPopMatrix(); // 座標系の保存
 
-
-  
   // 体
-  Cylinder(height*0.9, radius);
+  Cylinder(height*0.9, radius, 0, 0, 0);
 }
 // 描画処理を行う
 void display (void) {
 	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
-	glPushMatrix(); // 座標系の保存
-
-
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
 	Body(3.0,2.0);
   // 右腕
-  glPushMatrix(); // 座標系の保存
-	glTranslatef(2.8, 1, 0); // 座標変換
-	Capsule(1.4,0.5);
-	glPopMatrix(); // 座標系の復元
+	Capsule(1.4, 0.5, 2.8, 1.0, 0);
   // 左腕
-  glPushMatrix(); // 座標系の保存
-	glTranslatef(-2.8, 1, 0); // 座標変換
-	// Capsule(1.4,0.5);
-	glPopMatrix(); // 座標系の復元
+	Capsule(1.4, 0.5, -2.8, 1, 0);
   // 右足
-  glPushMatrix(); // 座標系の保存
-	glTranslatef(0.9, -1.1, 0); // 座標変換
-	Capsule(1.4,0.5);
-	glPopMatrix(); // 座標系の復元
+	Capsule(1.4, 0.5, 0.9, -1.1, 0);
   // 左足
-  glPushMatrix(); // 座標系の保存
-	glTranslatef(-0.9, -1.1, 0); // 座標変換
-	Capsule(1.4,0.5);
-	glPopMatrix(); // 座標系の復元
-
-	glPopMatrix(); // 座標系の復元
+	Capsule(1.4, 0.5, -0.9, -1.1, 0);
 
 	glutSwapBuffers();
 }
