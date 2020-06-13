@@ -107,7 +107,6 @@ void display (void) {
 
 
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
-	glTranslatef(0, -4, -10); // 座標変換
 	Body(3.0,2.0);
   // 右腕
   glPushMatrix(); // 座標系の保存
@@ -117,7 +116,7 @@ void display (void) {
   // 左腕
   glPushMatrix(); // 座標系の保存
 	glTranslatef(-2.8, 1, 0); // 座標変換
-	Capsule(1.4,0.5);
+	// Capsule(1.4,0.5);
 	glPopMatrix(); // 座標系の復元
   // 右足
   glPushMatrix(); // 座標系の保存
@@ -153,7 +152,7 @@ void init (void) {
 	gluPerspective(45.0, 1, 1.0, 100.0); // カメラの視野を設定
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0, 1.0, 3.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0); // カメラの向き
+	gluLookAt(0.0, 6.0, 12, 0.0, -2.0, -12.0, 0.0, 1.0, 0.0); // カメラの向き
 }
 
 int main (int argc, char *argv[]) {
