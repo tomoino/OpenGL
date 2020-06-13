@@ -4,22 +4,23 @@
 #include <math.h>
 #include <string.h>
 
-#define DIVISION 100
+#define DIVISION 100 // 分割数。多いほど曲面に近くなる。
 
 GLfloat GREEN[] = {0.6, 0.9, 0.4, 1.0};		//緑色
-GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//緑色
+GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//白色
+GLfloat GLASS[] = {0.2, 0.4, 0.8, 0.4};		//透明白色
+
 // TODO: glVertex3dv
 void Cylinder(double height, double radius, double x, double y, double z) {
-  int division = 100; // 分割数。多いほど曲面に近くなる。
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
-  double step = 2.0 * M_PI / (double)division; // 側面1辺あたりの中心角
+  double step = 2.0 * M_PI / (double)DIVISION; // 側面1辺あたりの中心角
   int i;
   double theta = 0;
   /* 上面  */
   glNormal3d(0.0, 1.0, 0.0);
   glBegin(GL_POLYGON);
-  for (i = 0; i < division; i++) {
+  for (i = 0; i < DIVISION; i++) {
     glVertex3d(radius * sin(theta), height, radius * cos(theta));
     theta += step;
   }
@@ -28,8 +29,8 @@ void Cylinder(double height, double radius, double x, double y, double z) {
   /* 下面 */
   glNormal3d(0.0, -1.0, 0.0);
   glBegin(GL_POLYGON);
-  theta = step * division;
-  for (i = division; --i >= 0; ) {
+  theta = step * DIVISION;
+  for (i = DIVISION; --i >= 0; ) {
     glVertex3d(radius * sin(theta), 0.0, radius * cos(theta));
     theta -= step;
   }
@@ -38,7 +39,7 @@ void Cylinder(double height, double radius, double x, double y, double z) {
   /* 側面 */
   glBegin(GL_QUAD_STRIP);
   theta = 0;
-  for (i = 0; i <= division; i++) {
+  for (i = 0; i <= DIVISION; i++) {
     double x = sin(theta);
     double z = cos(theta);
 
@@ -52,15 +53,13 @@ void Cylinder(double height, double radius, double x, double y, double z) {
 }
 
 void Sphere (double radius, double x, double y, double z) {
-  int division = 100; // 分割数。多いほど曲面に近くなる。
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
-  glutSolidSphere(radius, division, division);//半径, Z軸まわりの分割数, Z軸に沿った分割数
+  glutSolidSphere(radius, DIVISION, DIVISION);//半径, Z軸まわりの分割数, Z軸に沿った分割数
   glPopMatrix(); // 座標系の保存
 }
 
 void Capsule (double height, double radius, double x, double y, double z) {
-  int division = 100; // 分割数。多いほど曲面に近くなる。
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
   Sphere(radius, 0, height, 0);//半径, Z軸まわりの分割数, Z軸に沿った分割数
@@ -69,8 +68,31 @@ void Capsule (double height, double radius, double x, double y, double z) {
  	glPopMatrix(); // 座標系の保存
 }
 
+void CurveSurface (height, radius, theta) {
+  double deltaTheta = (theta * M_PI / 180 ) / (double)DIVISION;
+  glBegin(GL_TRIANGLE_STRIP);
+  double initTheta = (90 - theta/2) * M_PI / 180;
+  double x, z, t;
+  
+  for (int i = 0; i <= DIVISION; i++) {
+    t = initTheta + i * deltaTheta;
+    x = -radius * cos(t);
+    z = radius * sin(t);
+    glNormal3d(x, 0, z);
+    glVertex3d(x, height, height);
+    glVertex3d(x, 0, z);
+  }
+  glEnd();
+}
+
+void FaceShield (double x, double y, double z) {
+  glPushMatrix(); // 座標系の保存
+  glTranslatef(x, y, z); // 座標変換
+  CurveSurface(1.0, 2.5, 80);
+  glPopMatrix();
+}
+
 void Body (double height, double radius) {
-  int division = 100; // 分割数。多いほど曲面に近くなる。
   // 頭部
   glPushMatrix(); // 座標系の保存
   glTranslatef(0, height, 0); // 座標変換
@@ -105,7 +127,7 @@ void Body (double height, double radius) {
 void display (void) {
 	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
 	Body(3.0,2.0);
   // 右腕
@@ -117,6 +139,10 @@ void display (void) {
   // 左足
 	Capsule(1.4, 0.5, -0.9, -1.1, 0);
 
+  // フェイスシールド
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GLASS);
+  FaceShield(0, 4, 2.3);
+
 	glutSwapBuffers();
 }
 
@@ -126,7 +152,8 @@ void init (void) {
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 	//glCullFace(GL_BACK);
-
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// 光源の有効化
 	glEnable(GL_LIGHTING); // 陰影
 	glEnable(GL_LIGHT0); // 光源
