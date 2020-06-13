@@ -8,7 +8,8 @@
 
 GLfloat GREEN[] = {0.6, 0.9, 0.4, 1.0};		//緑色
 GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//白色
-GLfloat GLASS[] = {0.2, 0.4, 0.8, 0.4};		//透明白色
+GLfloat BLUE[] = {0.2, 0.4, 0.8, 1.0};		//青色
+GLfloat GLASS[] = {0.2, 0.4, 0.8, 0.4};		//透明青色
 
 // TODO: glVertex3dv
 void Cylinder(double height, double radius, double x, double y, double z) {
@@ -68,27 +69,34 @@ void Capsule (double height, double radius, double x, double y, double z) {
  	glPopMatrix(); // 座標系の保存
 }
 
-void CurveSurface (height, radius, theta) {
+void CurveSurface (double height, double radius, double theta, double slope, double x, double y, double z) {
+  glPushMatrix();
+  glTranslatef(x, y, z);
   double deltaTheta = (theta * M_PI / 180 ) / (double)DIVISION;
   glBegin(GL_TRIANGLE_STRIP);
   double initTheta = (90 - theta/2) * M_PI / 180;
-  double x, z, t;
+  double rx, rz, t;
   
   for (int i = 0; i <= DIVISION; i++) {
     t = initTheta + i * deltaTheta;
-    x = -radius * cos(t);
-    z = radius * sin(t);
-    glNormal3d(x, 0, z);
-    glVertex3d(x, height, height);
-    glVertex3d(x, 0, z);
+    rx = -radius * cos(t);
+    rz = radius * sin(t);
+    glNormal3d(rx, 0, rz);
+    glVertex3d(rx, height, rz);
+    glVertex3d(rx*(1+slope), 0, rz*(1+slope));
   }
   glEnd();
+  glPopMatrix();
 }
 
 void FaceShield (double x, double y, double z) {
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
-  CurveSurface(1.0, 2.5, 80);
+  double theta = 80;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BLUE);
+  CurveSurface(0.1, 2.5, 80, 0.1, 0, 0.9, 0);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GLASS);
+  CurveSurface(0.9, 2.5, 80, 0, 0, 0, 0);
   glPopMatrix();
 }
 
@@ -140,7 +148,6 @@ void display (void) {
 	Capsule(1.4, 0.5, -0.9, -1.1, 0);
 
   // フェイスシールド
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GLASS);
   FaceShield(0, 4, 2.3);
 
 	glutSwapBuffers();
@@ -152,6 +159,7 @@ void init (void) {
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 	//glCullFace(GL_BACK);
+  // 透明化を有効にする
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// 光源の有効化
