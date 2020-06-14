@@ -8,17 +8,21 @@
 
 GLfloat GREEN[] = {0.6, 0.9, 0.4, 1.0};		//緑色
 GLfloat WHITE[] = {1.0, 1.0, 1.0, 1.0};		//白色
+GLfloat BLACK[] = {0,0,0, 1.0};		//白色
 GLfloat BLUE[] = {0.2, 0.4, 0.8, 1.0};		//青色
 GLfloat GLASS[] = {0.2, 0.4, 0.8, 0.4};		//透明青色
+GLfloat LIGHT[] = {0.9, 0.9, 0.8, 1.0}; // 光の色 
 
-// TODO: glVertex3dv
+GLfloat pos0[] = { -2.0, 5.0, 5.0, 0 }; // 光源の位置、種類の設定
+
+// 円柱：高さ、半径、表示位置を指定
 void Cylinder(double height, double radius, double x, double y, double z) {
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
   double step = 2.0 * M_PI / (double)DIVISION; // 側面1辺あたりの中心角
   int i;
   double theta = 0;
-  /* 上面  */
+  // 上面 
   glNormal3d(0.0, 1.0, 0.0);
   glBegin(GL_POLYGON);
   for (i = 0; i < DIVISION; i++) {
@@ -27,7 +31,7 @@ void Cylinder(double height, double radius, double x, double y, double z) {
   }
   glEnd();
 
-  /* 下面 */
+  // 下面
   glNormal3d(0.0, -1.0, 0.0);
   glBegin(GL_POLYGON);
   theta = step * DIVISION;
@@ -37,7 +41,7 @@ void Cylinder(double height, double radius, double x, double y, double z) {
   }
   glEnd();
 
-  /* 側面 */
+  // 側面
   glBegin(GL_QUAD_STRIP);
   theta = 0;
   for (i = 0; i <= DIVISION; i++) {
@@ -53,6 +57,7 @@ void Cylinder(double height, double radius, double x, double y, double z) {
   glPopMatrix();
 }
 
+// 球：半径、表示位置を指定
 void Sphere (double radius, double x, double y, double z) {
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
@@ -60,6 +65,7 @@ void Sphere (double radius, double x, double y, double z) {
   glPopMatrix(); // 座標系の保存
 }
 
+// 円柱の両端に半球を付けた、カプセル型図形：円柱部分の高さ、半径、表示位置を指定
 void Capsule (double height, double radius, double x, double y, double z) {
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
@@ -69,6 +75,7 @@ void Capsule (double height, double radius, double x, double y, double z) {
  	glPopMatrix(); // 座標系の保存
 }
 
+// 曲面（円柱側面の一部）：高さ、半径、内角の大きさ、傾き、表示位置を指定
 void CurveSurface (double height, double radius, double theta, double slope, double x, double y, double z) {
   glPushMatrix();
   glTranslatef(x, y, z);
@@ -89,33 +96,35 @@ void CurveSurface (double height, double radius, double theta, double slope, dou
   glPopMatrix();
 }
 
+// フェイスシールド：表示位置を指定
 void FaceShield (double x, double y, double z) {
   glPushMatrix(); // 座標系の保存
   glTranslatef(x, y, z); // 座標変換
-  double theta = 80;
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BLUE);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, BLUE);
   CurveSurface(0.1, 2.5, 80, 0.1, 0, 0.9, 0);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GLASS);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, GLASS);
   CurveSurface(0.9, 2.5, 80, 0, 0, 0, 0);
   glPopMatrix();
 }
 
+// 本体（頭と体）：高さ、半径を指定
 void Body (double height, double radius) {
   // 頭部
   glPushMatrix(); // 座標系の保存
   glTranslatef(0, height, 0); // 座標変換
 
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, GREEN);
   Sphere(radius, 0, 0, 0);//半径, Z軸まわりの分割数, Z軸に沿った分割数
 
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, WHITE);
   // 頭と体の区切り
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, WHITE);
   Cylinder(height*0.1, radius, 0, -height/10, 0); 
   // 右目
   Sphere(radius*0.1, -radius*0.4, radius*0.5, radius*0.7);//半径, Z軸まわりの分割数, Z軸に沿った分割数
   // 左目
   Sphere(radius*0.1, radius*0.4, radius*0.5, radius*0.7);//半径, Z軸まわりの分割数, Z軸に沿った分割数
 
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, GREEN);
   // 右触覚
   glPushMatrix();
   glRotatef(30,0,0,1);
@@ -131,12 +140,16 @@ void Body (double height, double radius) {
   // 体
   Cylinder(height*0.9, radius, 0, 0, 0);
 }
+
 // 描画処理を行う
 void display (void) {
 	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+	glLightfv(GL_LIGHT0, GL_POSITION, pos0); // 光源の設定
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, LIGHT); // 拡散反射
+  glMaterialfv(GL_FRONT, GL_AMBIENT, LIGHT);
 
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, GREEN);
 	Body(3.0,2.0);
   // 右腕
 	Capsule(1.4, 0.5, 2.8, 1.0, 0);
@@ -153,21 +166,17 @@ void display (void) {
 	glutSwapBuffers();
 }
 
+// 初期化
 void init (void) {
 	glClearColor(1.0, 1.0, 1.0, 0.0); // 背景色の指定
 	glEnable(GL_DEPTH_TEST); // 陰面除去
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glCullFace(GL_BACK);
   // 透明化を有効にする
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// 光源の有効化
 	glEnable(GL_LIGHTING); // 陰影
 	glEnable(GL_LIGHT0); // 光源
-	// glEnable(GL_LIGHT1);
-	// TODO: 光源未設定
-	// TODO: 材質未設定
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45.0, 1, 1.0, 100.0); // カメラの視野を設定
