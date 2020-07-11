@@ -201,7 +201,7 @@ int collision()
 	double MARGIN = 0.05;
 	for (i = 0; i < tekiIndex; i++)
 	{
-		//簡単な衝突判定
+		//簡単な衝突判定：立方体同士の衝突判定
 		if ((tekiList[i][0] - x <1 - MARGIN) && (tekiList[i][0] - x >-1 + MARGIN)
 			&& (tekiList[i][1] - y <1 - MARGIN) && (tekiList[i][1] - y >-1 + MARGIN)
 			&& (tekiList[i][2] - z <1 - MARGIN) && (tekiList[i][2] - z >-1 + MARGIN))
@@ -215,29 +215,30 @@ int collision()
 
 void myTimerFunc(int value)
 {
+	int groundXMin = 0, groundXMax = (XG-1)*L, groundYMin = 0, groundYMax = (YG-1)*L;
 	if (mySpecialValue & (1 << 0))
 	{
 		y += 0.1;
 		if (collision())y -= 0.1;
-		//ここを変更する
+		if (y > groundYMax)y = groundYMax;
 	}
 	else if (mySpecialValue & (1 << 1))
 	{
 		x -= 0.1;
 		if (collision())x += 0.1;
-		//ここを変更する
+		if (x < groundXMin)x = groundXMin;
 	}
 	else if (mySpecialValue & (1 << 2))
 	{
 		x += 0.1;
 		if (collision())x -= 0.1;
-		//ここを変更する
+		if (x > groundXMax)x = groundXMax;
 	}
 	else if (mySpecialValue & (1 << 3))
 	{
 		y -= 0.1;
 		if (collision())y += 0.1;
-		//ここを変更する
+		if (y < groundYMin)y = groundYMin;
 	}
 
 	//視点を移動
@@ -253,13 +254,13 @@ void jump(int value) {
 	z = v*value + g*value*value / 2;
 	if (collision()) {
 		printf("z衝突");
-		z = v*(value-1) + g*(value-1)*(value-1) / 2;
+		z = v*(value-1) + g*(value-1)*(value-1) / 2; // 衝突前のz座標に戻す
 		glutTimerFunc(10, jump, value);//次の処理を登録
 		return;
 	}
 	if (z < 0)
 	{
-		z = 0;//ここを変更
+		z = 0;
 		jumpFlag = false;
 	}
 	else
