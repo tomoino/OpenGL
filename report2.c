@@ -161,7 +161,7 @@ void drawJiki(void)
 	glMaterialfv(GL_FRONT, GL_SPECULAR, color[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
 
-	glutSolidCube(1);
+	glutSolidSphere(0.5, 100, 100);
 	glPopMatrix();
 }
 void drawTeki(void)
@@ -203,14 +203,16 @@ int collision()
 	{
 		//簡単な衝突判定
 		if ((tekiList[i][0] - x <1 - MARGIN) && (tekiList[i][0] - x >-1 + MARGIN)
-			&& (tekiList[i][1] - y <1 - MARGIN) && (tekiList[i][1] - y >-1 + MARGIN))
+			&& (tekiList[i][1] - y <1 - MARGIN) && (tekiList[i][1] - y >-1 + MARGIN)
+			&& (tekiList[i][2] - z <1 - MARGIN) && (tekiList[i][2] - z >-1 + MARGIN))
 		{
-			printf("(%.02f,%.02f):(%.02f,%.02f)\n", x, y, tekiList[i][0], tekiList[i][1]);
+			printf("(%.02f,%.02f,%.02f):(%.02f,%.02f,%.02f)\n", x, y, z, tekiList[i][0], tekiList[i][1], tekiList[i][2]);
 			return 1;
 		}
 	}
 	return 0;
 }
+
 void myTimerFunc(int value)
 {
 	if (mySpecialValue & (1 << 0))
@@ -246,9 +248,15 @@ void myTimerFunc(int value)
 }
 
 void jump(int value) {
-	double v = 3;//ジャンプの速度
-	double g = -0.2;//落ちる加速度
+	double v = 0.2;//ジャンプの速度
+	double g = -0.01;//落ちる加速度
 	z = v*value + g*value*value / 2;
+	if (collision()) {
+		printf("z衝突");
+		z = v*(value-1) + g*(value-1)*(value-1) / 2;
+		glutTimerFunc(10, jump, value);//次の処理を登録
+		return;
+	}
 	if (z < 0)
 	{
 		z = 0;//ここを変更
